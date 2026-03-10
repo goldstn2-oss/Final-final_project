@@ -4,7 +4,6 @@
 #include "driver/gpio.h"
 #include "esp_timer.h"
 #include "esp_adc/adc_oneshot.h"
-
 #include <stdio.h>
 #include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
@@ -147,7 +146,6 @@ void app_main() {
     // Update duty to apply the new value
     ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
 
-
     gpio_init();
 
     int raw16, mv16;
@@ -225,10 +223,16 @@ void app_main() {
             servo();
         }
 
-        if (gpio_get_level(CALLIBRATION) == 1) {
+        if (gpio_get_level(CALLIBRATION) == 1 && callibration == 1) {
+                callibration = 0;
+                gpio_set_level(LED_GREEN, 0);
+                gpio_set_level(LED_YELLOW, 0);
+                gpio_set_level(LED_RED, 0);
+                target_position_x = 0;
+                target_position_y = 0;
             printf("System OFF\n");
         }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(10));
 
     }
 }
@@ -355,7 +359,6 @@ void calibration(void) {
     x_max = current_position_x;
     target_position_x = x_max - 1;
     printf("X max: %d\n", x_max);
-
 
      //y_min
     printf("Calibrating Y axis...\n");
