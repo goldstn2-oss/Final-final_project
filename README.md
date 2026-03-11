@@ -1,16 +1,22 @@
 
-# Improved Etch-a-Sketch
+<h1 align="center">Improved Etch-a-Sketch</h1>
 
 **Developed by:** Nathan Goldstein and James Gammie 
-<img width="704" height="932" alt="Screenshot 2026-03-11 at 3 38 48 PM" src="https://github.com/user-attachments/assets/033cb6a2-a60a-4f80-b5c5-23d6cb9dbcea" />
+
+<table>
+  <tr>
+    <td>
+      <img src="https://github.com/user-attachments/assets/033cb6a2-a60a-4f80-b5c5-23d6cb9dbcea" width="400" alt="Second Image">
+    </td>
+    <td>
+       <img src="https://github.com/user-attachments/assets/0c8afc78-d569-4444-abec-30ac524b4442" width="400" style="transform:rotate(180deg);" alt="First Image">
+    </td>
+  </tr>
+</table>
 
 ## Project Introduction
 
 This project is an enhanced version of the classic Etch-a-Sketch. Instead of the classic etch-a-sketch machine it uses a whiteboard, marker and eraser to write. Unlike the original etch-a-sketch it uses electronic components (potentiometers as knobs, servo motors for pen control, stepper motors for gantry control...). 
-
-
-
-<img width="459" height="819" alt="Screenshot 2026-03-11 at 3 38 59 PM" src="https://github.com/user-attachments/assets/5bffbfeb-6d3a-4c4b-805f-55f464553398" />
 
 
 
