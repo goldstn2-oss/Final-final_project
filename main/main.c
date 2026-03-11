@@ -1,3 +1,4 @@
+//Initilizing libraries 
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -8,6 +9,8 @@
 #include "driver/ledc.h"
 #include "freertos/FreeRTOS.h"
 
+//Defining constants and variables below:
+// LEDC (LED Control) configuration for servo control
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
 #define LEDC_OUTPUT_IO         (14)
@@ -16,22 +19,20 @@
 
 //Set the PWM signal frequency required by servo motor
 #define LEDC_FREQUENCY           50 // Frequency in Hertz. 
+#define PEN_DOWN                 615 //duty for pen down
+#define NEUTRAL                  560 // duty for pen up (neutral position)
+#define ERASER_DOWN              475 // duty for eraser down
 
-//Calculate the values for the minimum (0.75ms) and maximum (2.25) servo pulse widths
-#define PEN_DOWN          615 // Set duty to 3.75%.
-#define NEUTRAL              560 // Set duty to 7.5%.
-#define ERASER_DOWN           475 // Set duty to 11.25%.
-
+// initializing LEDC PWM timer/channell configuration for servo
 static void example_ledc_init(void);
 
-
-// Motor X pins
+// Stepper Motor X pins
 #define IN1 GPIO_NUM_7
 #define IN2 GPIO_NUM_15
 #define IN3 GPIO_NUM_18
 #define IN4 GPIO_NUM_8
 
-// Motor Y pins
+// Stepper Motor Y pins
 #define IN1_Y GPIO_NUM_6
 #define IN2_Y GPIO_NUM_4
 #define IN3_Y GPIO_NUM_1
@@ -47,11 +48,11 @@ static void example_ledc_init(void);
 // Limit Switches
 #define LIMIT_SWITCH_1 GPIO_NUM_10  // X min
 #define LIMIT_SWITCH_2 GPIO_NUM_11  // X max
-#define LIMIT_SWITCH_3 GPIO_NUM_12  // Y min
-#define LIMIT_SWITCH_4 GPIO_NUM_13  // Y max
+#define LIMIT_SWITCH_3 GPIO_NUM_12  // Y max
+#define LIMIT_SWITCH_4 GPIO_NUM_13  // Y min
 
 // Switches
-#define CALLIBRATION GPIO_NUM_47
+#define CALIBRATION_SWITCH        GPIO_NUM_47
 #define PEN_ERASE_DOWN      GPIO_NUM_20 
 #define PEN_ERASE_NEUTRAL   GPIO_NUM_21
 
@@ -65,9 +66,9 @@ int x_min= 0;
 int x_max = 0;
 int y_min = 0;
 int y_max = 0;
-int callibration = 0;
+int calibration_flag = 0;
 
-//ADC config
+// ADC config
 adc_oneshot_unit_handle_t adc2_handle;
 adc_cali_handle_t cali_gpio16;
 adc_cali_handle_t cali_gpio17;
@@ -84,23 +85,22 @@ const int step_matrix[8][4] = {
     {1, 0, 0, 1}
 };
 
-// X axis state
+// X axis timer and variable config
 esp_timer_handle_t timer_x;
 int step_index_x       = 0;
 int current_position_x = 0;
 int target_position_x  = 0;
 int pot_max_mv_x   = 5003; // Max mV from pot at max position, used for mapping pot reading to position
 
-// Y axis state
+// Y axis timer and variable config
 esp_timer_handle_t timer_y;
 int step_index_y       = 0;
 int current_position_y = 0;
 int target_position_y  = 0;
 int pot_max_mv_y   = 5003; // Max mV from pot at max position, used for mapping pot reading to position
 
-
+// Timer callback functions X control --> constantly monitorig the current and target position and move stepper motor accordingly
 void timer_callback_x(void* arg) {
-
     if (current_position_x == target_position_x) 
         return;
     if (current_position_x < target_position_x) {
@@ -116,6 +116,7 @@ void timer_callback_x(void* arg) {
     gpio_set_level(IN4, step_matrix[step_index_x][3]);
 }
 
+// Timer callback functions Y control --> constantly monitorig the current and target position and move stepper motor accordingly
 void timer_callback_y(void* arg) {
 
     if (current_position_y == target_position_y) 
@@ -133,6 +134,7 @@ void timer_callback_y(void* arg) {
     gpio_set_level(IN4_Y, step_matrix[step_index_y][3]);
 }
 
+//initializing functions for GPIO, calibration and servo control    
 void gpio_init(void);
 void calibration(void);
 void servo(void);
@@ -146,11 +148,14 @@ void app_main() {
     // Update duty to apply the new value
     ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
 
+    // Initialize GPIOs for stepper control, limit switches, calibration and pen/eraser control
     gpio_init();
 
+    // Variables for ADC readings
     int raw16, mv16;
     int raw17, mv17;
 
+    // ADC calibration and timer setup for stepper control
     adc_oneshot_unit_init_cfg_t init_config = { .unit_id = ADC_UNIT_2 };
     adc_oneshot_new_unit(&init_config, &adc2_handle);
 
@@ -170,29 +175,29 @@ void app_main() {
     };
     adc_cali_create_scheme_curve_fitting(&cali17_cfg, &cali_gpio17);
 
-    ///Create timer for X axis control
+    //Create timer for X axis control,running on esp32-s3 timer,(independent of the main loop --> precise timing control of the stepper motor movements)
     const esp_timer_create_args_t timer_args_x = { .callback = &timer_callback_x, .name = "stepper_x" };
     esp_timer_create(&timer_args_x, &timer_x);
     esp_timer_start_periodic(timer_x, 1000);
-
+    //Create timer for X axis control,running on esp32-s3 timer,(independent of the main loop --> precise timing control of the stepper motor movements)
     const esp_timer_create_args_t timer_args_y = { .callback = &timer_callback_y, .name = "stepper_y" };
     esp_timer_create(&timer_args_y, &timer_y);
     esp_timer_start_periodic(timer_y, 1000);
 
-
     while (1) {
 
-        if (gpio_get_level(CALLIBRATION) == 0 && callibration == 0) {
+        // if statement for when the calbiration switch is pressed on and calibration has not been done yet
+        if (gpio_get_level(CALIBRATION_SWITCH) == 0 && calibration_flag == 0) {
             gpio_set_level(LED_YELLOW, 1);
             calibration();
             gpio_set_level(LED_YELLOW, 0);
-            printf("Calibration complete\n");
             gpio_set_level(LED_GREEN, 1);
-            callibration = 1;
+            calibration_flag = 1;
             printf("Calibration complete\n");
         }
 
-        if (gpio_get_level(CALLIBRATION) == 0 && callibration == 1) {
+        //if statement for when the calibration switch is pressed on and calibration has already been done (puts system in 'draw mode')
+        if (gpio_get_level(CALIBRATION_SWITCH) == 0 && calibration_flag == 1) {
 
             adc_oneshot_read(adc2_handle, ADC_CHANNEL_GPIO16, &raw16);
             adc_cali_raw_to_voltage(cali_gpio16, raw16, &mv16);
@@ -223,8 +228,9 @@ void app_main() {
             servo();
         }
 
-        if (gpio_get_level(CALLIBRATION) == 1 && callibration == 1) {
-                callibration = 0;
+        //if statement for when the calibration switch is pressed off and calibration has already been done (resets system, so it can be recalibrated if needed and also puts the motors back to the 'home' position (0,0))
+        if (gpio_get_level(CALIBRATION_SWITCH) == 1 && calibration_flag == 1) {
+                calibration_flag = 0;
                 gpio_set_level(LED_GREEN, 0);
                 gpio_set_level(LED_YELLOW, 0);
                 gpio_set_level(LED_RED, 0);
@@ -237,9 +243,8 @@ void app_main() {
     }
 }
 
-
+// Function to control the servo motor based on the pen/eraser switch states
 void servo(void){
-    
     if (gpio_get_level(PEN_ERASE_NEUTRAL) == 0) {
         ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, NEUTRAL);
         ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
@@ -264,7 +269,7 @@ void servo(void){
  
     
 }
-
+// Function to initialize the LEDC peripheral for servo control
 static void example_ledc_init(void)
 {
     // Prepare and then apply the LEDC PWM timer configuration
@@ -290,7 +295,7 @@ static void example_ledc_init(void)
 ledc_channel_config(&ledc_channel);
 }
 
-
+// Function to initialize GPIO pins for stepper motor control, limit switches, calibration and pen/eraser control, and LEDs
 void gpio_init() {
     gpio_reset_pin(IN1); 
     gpio_set_direction(IN1, GPIO_MODE_OUTPUT);
@@ -319,8 +324,8 @@ void gpio_init() {
     gpio_reset_pin(LIMIT_SWITCH_4); 
     gpio_set_direction(LIMIT_SWITCH_4, GPIO_MODE_INPUT);
 
-    gpio_reset_pin(CALLIBRATION); 
-    gpio_set_direction(CALLIBRATION, GPIO_MODE_INPUT);
+    gpio_reset_pin(CALIBRATION_SWITCH); 
+    gpio_set_direction(CALIBRATION_SWITCH, GPIO_MODE_INPUT);
     gpio_reset_pin(PEN_ERASE_DOWN);       
     gpio_set_direction(PEN_ERASE_DOWN, GPIO_MODE_INPUT);
     gpio_reset_pin(PEN_ERASE_NEUTRAL);    
@@ -334,7 +339,7 @@ void gpio_init() {
     gpio_set_direction(LED_GREEN, GPIO_MODE_OUTPUT);
 }
 
-
+// Function to calibrate the system by finding the min and max positions of the X and Y axes using the limit switches, and setting the corresponding variables for mapping the potentiometer readings to positions
 void calibration(void) {
     //set pen up
     ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, NEUTRAL);
