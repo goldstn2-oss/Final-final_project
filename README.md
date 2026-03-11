@@ -1,4 +1,3 @@
-Here is a draft for your project's `README.md` file based on the details from your design documents:
 
 # Improved Etch-a-Sketch
 
@@ -7,7 +6,7 @@ Here is a draft for your project's `README.md` file based on the details from yo
 
 ## Project Introduction
 
-This project is an enhanced version of the classic Etch-a-Sketch entertainment system, designed to address several inherent design limitations of the original toy.
+This project is an enhanced version of the classic Etch-a-Sketch. Instead of the classic etch-a-sketch machine it uses a whiteboard, marker and eraser to write. Unlike the original etch-a-sketch it uses electronic components (potentiometers as knobs, servo motors for pen control, stepper motors for gantry control...). 
 
 
 
@@ -22,10 +21,8 @@ The primary goal of this project is to create a more versatile and accessible dr
 * **Controllable Drawing:** The ability to stop a line from being drawn by "picking up" the pen.
 
 
-* **Precision Erasing:** A dedicated eraser tool that allows for more precise corrections than the traditional "shake-to-erase" method.
+* **Precise Erasing:** A dedicated eraser tool that allows for more precise corrections than the traditional "shake-to-erase" method.
 
-
-* **Improved Accessibility:** Eliminating the need for physical shaking, making the device easier to use for everyone.
 
 <img width="1422" height="1077" alt="Screenshot 2026-03-11 at 3 39 11 PM" src="https://github.com/user-attachments/assets/45fc1350-67f4-435e-9260-71708ce8945e" />
 
