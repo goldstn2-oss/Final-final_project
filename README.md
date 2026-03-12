@@ -46,17 +46,21 @@ The software is structured around an input-driven state machine with four main t
 
 <img width="1422" height="1077" alt="Screenshot 2026-03-11 at 3 39 11 PM" src="https://github.com/user-attachments/assets/45fc1350-67f4-435e-9260-71708ce8945e" />
 
-<h2 align="center">## Hardware Overview
 
-The hardware system is built on an **XY gantry** design that utilizes:
+
+<h2 align="center">Hardware Overview</h2>
+
+
+
+The hardware system is built on an XY gantry design that utilizes:
 
 * **Movement:** Two stepper motors drive a rack-and-pinion system to move a carriage precisely across the drawing surface in both X and Y directions.
 
-
 * **User Interface:** Two potentiometers (knobs) provide intuitive control for movement, mimicking the classic Etch-a-Sketch experience.
-
 
 * **Tool Head:** A small servo motor is mounted on the carriage, featuring a dual attachment that holds both a marker and an eraser. This allows for automated switching between drawing and erasing modes.
 
-
 * **Precision:** Hardware limit switches are installed at the axis boundaries to facilitate the automated homing and calibration process.
+
+
+
