@@ -316,12 +316,16 @@ void gpio_init() {
     gpio_set_direction(IN4_Y, GPIO_MODE_OUTPUT);
 
     gpio_reset_pin(LIMIT_SWITCH_1); 
+    gpio_pullup_en(LIMIT_SWITCH_1);
     gpio_set_direction(LIMIT_SWITCH_1, GPIO_MODE_INPUT);
     gpio_reset_pin(LIMIT_SWITCH_2); 
+    gpio_pullup_en(LIMIT_SWITCH_2);
     gpio_set_direction(LIMIT_SWITCH_2, GPIO_MODE_INPUT);
     gpio_reset_pin(LIMIT_SWITCH_3); 
+    gpio_pullup_en(LIMIT_SWITCH_3);
     gpio_set_direction(LIMIT_SWITCH_3, GPIO_MODE_INPUT);
-    gpio_reset_pin(LIMIT_SWITCH_4); 
+    gpio_reset_pin(LIMIT_SWITCH_4);
+    gpio_pullup_en(LIMIT_SWITCH_4);
     gpio_set_direction(LIMIT_SWITCH_4, GPIO_MODE_INPUT);
 
     gpio_reset_pin(CALIBRATION_SWITCH); 
